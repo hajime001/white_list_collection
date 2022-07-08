@@ -2,12 +2,14 @@ import { recoverPersonalSignature } from 'eth-sig-util';
 import { bufferToHex } from 'ethereumjs-util';
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
+import axios from 'axios';
+import FormData from 'form-data';
 
 import { config } from '../../config';
 import { User } from '../../models/user.model';
 
 export const create = (req: Request, res: Response, next: NextFunction) => {
-	const { signature, publicAddress } = req.body;
+	const { signature, publicAddress, code } = req.body;
 	if (!signature || !publicAddress)
 		return res
 			.status(400)
@@ -106,7 +108,51 @@ export const create = (req: Request, res: Response, next: NextFunction) => {
 					)
 				);
 			})
-			.then((accessToken: string) => res.json({ accessToken }))
+			.then((accessToken: string) => {
+				const getDiscordUserInfo = async () => {
+					const params = new FormData();
+					params.append('client_id', '994829575076978762');
+					params.append(
+						'client_secret',
+						'NFn1gZ7H4WLLePYolK4b0wqbanEh9_5g'
+					);
+					params.append('grant_type', 'authorization_code');
+					params.append('code', code);
+					params.append(
+						'redirect_uri',
+						'http://localhost:3000/meta_mask_login'
+					);
+
+					const headers = {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					};
+					const response = await axios.post(
+						'https://discordapp.com/api/oauth2/token',
+						params,
+						{ headers: headers }
+					);
+
+					const user_headers = {
+						Authorization:
+							'Bearer ' + String(response.data.access_token),
+					};
+					console.log(user_headers);
+					const user_response = await axios({
+						method: 'POST',
+						url: 'https://discordapp.com/api/users/@me',
+						headers: user_headers,
+					});
+
+					return user_response.data;
+				};
+
+				const discordUserInfo = getDiscordUserInfo();
+
+				return res.json({
+					accessToken,
+					discordUserInfo: discordUserInfo,
+				});
+			})
 			.catch(next)
 	);
 };

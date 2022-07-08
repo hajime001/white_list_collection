@@ -4,8 +4,10 @@ import React, { useEffect, useState } from 'react';
 
 import { Login } from '../Login';
 import { Profile } from '../Profile/Profile';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Auth } from '../types';
 import logo from './logo.svg';
+import { Discord } from '../Discord';
 
 const LS_KEY = 'login-with-metamask:auth';
 
@@ -44,11 +46,15 @@ export const App = (): JSX.Element => {
 				</h1>
 			</header>
 			<div className="App-intro">
-				{auth ? (
-					<Profile auth={auth} onLoggedOut={handleLoggedOut} />
-				) : (
-					<Login onLoggedIn={handleLoggedIn} />
-				)}
+				<Router>
+					<Routes>
+						<Route path="/" element={<Discord />} />
+						<Route
+							path="/meta_mask_login"
+							element={<Login onLoggedIn={handleLoggedIn} />}
+						/>
+					</Routes>
+				</Router>
 			</div>
 		</div>
 	);

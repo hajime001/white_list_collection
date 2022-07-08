@@ -17,12 +17,14 @@ export const Login = ({ onLoggedIn }: Props): JSX.Element => {
 	const handleAuthenticate = ({
 		publicAddress,
 		signature,
+		code,
 	}: {
 		publicAddress: string;
 		signature: string;
+		code: string;
 	}) =>
 		fetch(`${process.env.REACT_APP_BACKEND_URL}/auth`, {
-			body: JSON.stringify({ publicAddress, signature }),
+			body: JSON.stringify({ publicAddress, signature, code }),
 			headers: {
 				'Content-Type': 'application/json',
 			},
@@ -37,13 +39,16 @@ export const Login = ({ onLoggedIn }: Props): JSX.Element => {
 		nonce: string;
 	}) => {
 		try {
+			const href = window.location.href;
+			const code = href.substring(href.lastIndexOf('=') + 1);
+			console.log(code);
 			const signature = await web3!.eth.personal.sign(
 				`I am signing my one-time nonce: ${nonce}`,
 				publicAddress,
 				'' // MetaMask will ignore the password argument here
 			);
 
-			return { publicAddress, signature };
+			return { publicAddress, signature, code };
 		} catch (err) {
 			throw new Error(
 				'You need to sign the message to be able to log in.'
@@ -121,12 +126,6 @@ export const Login = ({ onLoggedIn }: Props): JSX.Element => {
 			</p>
 			<button className="Login-button Login-mm" onClick={handleClick}>
 				{loading ? 'Loading...' : 'Login with MetaMask'}
-			</button>
-			<button className="Login-button Login-fb" disabled>
-				Login with Facebook
-			</button>
-			<button className="Login-button Login-email" disabled>
-				Login with Email
 			</button>
 		</div>
 	);
