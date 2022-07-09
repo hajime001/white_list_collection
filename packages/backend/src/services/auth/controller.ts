@@ -132,25 +132,23 @@ export const create = (req: Request, res: Response, next: NextFunction) => {
 						{ headers: headers }
 					);
 
-					const user_headers = {
+					const userHeaders = {
 						Authorization:
 							'Bearer ' + String(response.data.access_token),
 					};
-					console.log(user_headers);
-					const user_response = await axios({
-						method: 'POST',
-						url: 'https://discordapp.com/api/users/@me',
-						headers: user_headers,
-					});
+					const userResponse = await axios.get(
+						'https://discordapp.com/api/users/@me',
+						{ headers: userHeaders }
+					);
 
-					return user_response.data;
+					return userResponse.data;
 				};
 
-				const discordUserInfo = getDiscordUserInfo();
-
-				return res.json({
-					accessToken,
-					discordUserInfo: discordUserInfo,
+				getDiscordUserInfo().then((discordUserInfo) => {
+					return res.json({
+						accessToken,
+						discordUserInfo: discordUserInfo,
+					});
 				});
 			})
 			.catch(next)
